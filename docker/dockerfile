@@ -1,0 +1,14 @@
+MAINTAINER "Benjamin Norman 2023"
+
+FROM Ubuntu:20.04
+
+USER webDetector
+
+WORKDIR /home/webDetector
+
+
+
+
+RUN mkdir ./
+
+COPY ./src ./
