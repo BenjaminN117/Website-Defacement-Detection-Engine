@@ -12,12 +12,10 @@ This is an automated defacement detection engine, it allows the web code running
 
 ## Data Generated
 
-
 - Time of detection
 - Domain of server
 - IP address of server
 - Code that has been modified compared to original code
-
 
 ## Future Improvements
 

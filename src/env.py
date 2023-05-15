@@ -5,13 +5,22 @@ Author: Benjamin Norman 2023
 '''
 
 ### S3 CONFIG ###
-BUCKET_NAME = ""
+BUCKET_NAME = "defacement-engine"
 
-FILE_PREFIX = "s3://"
+WEBSITES_LOCATION = "s3://defacement-engine/websites"
 
-DOWNLOAD_LOCATION = ""
+LOG_FILE_LOCATION = "S3://defacement-engine/logs/"
 
-S3_LOG_FILE_LOCATION = "s3://"
+OUTPUT_FILE_LOCATION = "S3://defacement-engine/output/"
+
+
+# Download location for within the Docker container
+
+# That value is for testing only
+PRODUCTION_WEBSITES_DOWNLOAD_LOCATION = "./"
+
+LIVE_WEBSITES_DOWNLOAD_LOCATION = "./"
+
 
 
 ### SNS CONFIG ###
