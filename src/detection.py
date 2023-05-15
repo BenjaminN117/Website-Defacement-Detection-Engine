@@ -5,12 +5,14 @@ Author: Benjamin Norman 2023
 '''
 
 import logging
+import os
+import requests
+import json
+
+from aws_interactions import s3_interactions, sns_interactions
 
 class website_detection():
     def __init__(self):
-        pass
-    
-    def load_list(self):
         pass
     
     def web_fetcher(self):
@@ -25,7 +27,23 @@ class website_detection():
         Fetches the website data from the listed
         websites
         '''
-        pass
+        s3_int = s3_interactions()
+        
+        builtURL = ""
+        domainList = s3_int.domain_list_creation()
+        
+        os.makedirs("Data/Live_Data", exist_ok=True)
+        
+        for domain in domainList["domains"]:
+            key = list(domain.keys())[0]
+            print(key)
+            os.makedirs(f"Data/Live_Data/{key}", exist_ok=True)
+            for subdomain in domain[key]:
+                builtURL = f"https://{key}/{subdomain}"
+                
+                print(builtURL)
+                
+        # Fetch the website data based on the files
     
     def comparison(self):
         '''
@@ -35,3 +53,9 @@ class website_detection():
         - All data should be exported to a JSON file, if differences are found. If not then it shouldn't be logged.
         '''
         pass
+    
+    
+if __name__ == "__main__":
+    inst = website_detection()
+    
+    inst.web_fetcher()
