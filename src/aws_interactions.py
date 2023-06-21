@@ -55,30 +55,7 @@ class s3_interactions():
             else:
                 self.s3.upload_fileobj(data, BUCKET_NAME, 'mykey')
     
-    def domain_list_creation(self):
-        
-        # Move out of aws_interactions and into detection.py
-        
-        # Working
-        
-        '''
-        Compile a list of all websites that need to be fetched
-        
-        - The domain names should be the name of the prefix e.g. google.com
-        - Collect the domain names and add them to a list along with the https:// formatting. This
-        makes the assumption that all websites being tested are HTTPS (Should be an ok assumption to make
-        in 2023)
-        - List should be fetched from the Container file system, not S3, to prevent unneccessary requests to S3
-        '''
-        domainJSON = {"domains":[]}
-        
-        for domainName in os.listdir(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}Data/Production_Data"):
-            temp = {domainName:[]}
-            for fileName in os.listdir(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}Data/Production_Data/{domainName}"):
-                temp[domainName].append(fileName)
-            domainJSON["domains"].append(temp)
-        
-        return domainJSON
+    
     
 class sns_interactions():
     def __init__(self):

@@ -16,9 +16,11 @@ from env import *
 from aws_interactions import s3_interactions, sns_interactions
 
 class website_detection():
+    # Import a logging object as well when that stage is next up
     def __init__(self):
-        pass
-    
+        self.S3Interactions = s3_interactions()
+        self.SNSInteractions = sns_interactions()
+
     def web_fetcher(self):
         '''
         - While doing the web fetching, also do a DNS lookup to ensure the IP address of the website is
@@ -31,10 +33,9 @@ class website_detection():
         Fetches the website data from the listed
         websites
         '''
-        s3_int = s3_interactions()
         
         builtURL = ""
-        domainList = s3_int.domain_list_creation()
+        domainList = self.domain_list_creation()
         
         os.makedirs("Data/Live_Data", exist_ok=True)
         
@@ -117,6 +118,30 @@ class website_detection():
                 webFiles.append(entry)
         
         return webFiles
+    
+    def domain_list_creation(self):
+        
+        # Working
+        
+        '''
+        Compile a list of all websites that need to be fetched
+        
+        - The domain names should be the name of the prefix e.g. google.com
+        - Collect the domain names and add them to a list along with the https:// formatting. This
+        makes the assumption that all websites being tested are HTTPS (Should be an ok assumption to make
+        in 2023)
+        - List should be fetched from the Container file system, not S3, to prevent unneccessary requests to S3
+        '''
+        domainJSON = {"domains":[]}
+        
+        for domainName in os.listdir(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}Data/Production_Data"):
+            temp = {domainName:[]}
+            for fileName in os.listdir(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}Data/Production_Data/{domainName}"):
+                temp[domainName].append(fileName)
+            domainJSON["domains"].append(temp)
+        
+        return domainJSON
+    
     
     def comparison(self):
         
