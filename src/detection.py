@@ -8,7 +8,11 @@ import logging
 import os
 import requests
 import json
+import shutil
 
+from pywebcopy import save_web_page
+
+from env import *
 from aws_interactions import s3_interactions, sns_interactions
 
 class website_detection():
@@ -34,18 +38,90 @@ class website_detection():
         
         os.makedirs("Data/Live_Data", exist_ok=True)
         
+        # Fetch the website data for HTTPS to start with and then HTTP if not exists
+        
         for domain in domainList["domains"]:
             key = list(domain.keys())[0]
             print(key)
             os.makedirs(f"Data/Live_Data/{key}", exist_ok=True)
-            for subdomain in domain[key]:
-                builtURL = f"https://{key}/{subdomain}"
+            download_folder = f'Data/Live_Data/{key}'   
+            kwargs = {'bypass_robots': True}
+            
+            webFiles = self.file_indexing(f"Data/Production_Data/{key}")
+            
+            self.data_cleaning(webFiles=webFiles)
+            
+            print(webFiles)
+            
+            # for subdomain in webFiles:
                 
-                print(builtURL)
+            #     try:
+            #         try:
+            #             builtURL = f"https://{key}/{subdomain}"
+            #             print(builtURL)
+            #             #save_web_page(builtURL, download_folder, **kwargs)
+            #         except requests.exceptions.SSLError:
+            #             builtURL = f"http://{key}/{subdomain}"
+            #             print(builtURL)
+            #             #save_web_page(builtURL, download_folder, **kwargs)
+            #             os.removedirs(f"Data/Live_Data/{key}/https_{key}")
+            #     except Exception as err:
+            #         print(f"URL NOT FOUND {err}")
+            #         shutil.rmtree(f"Data/Live_Data/{key}", ignore_errors=True)
                 
-        # Fetch the website data based on the files
+            #     # for subdomain in domain[key]:
+            #     #     builtURL = f"https://{key}/{subdomain}"
+                
+            # print(builtURL)
+    
+    def data_cleaning(self, webFiles):
+        
+        # Private function
+        
+        # Dependancy for web_fetcher
+        
+        '''
+        Removes the comments added by the pywebcopy module that could interfere
+        with the detection process.
+        
+        Needs to be run on every .html file as this is what it effects
+        
+        '''
+        for x in webFiles:
+            if x.endswith(".html"):
+                with open(x, "r") as file:
+                    lines = file.readlines()
+
+                # Filter out the lines to be removed
+                lines_to_remove = [2, 3, 4, 5, 6]  # Example: remove lines 2, 4, and 7
+                filtered_lines = [line for i, line in enumerate(lines) if i+1 not in lines_to_remove]
+
+                # Open the output file in write mode
+                with open(x, "w") as file:
+                    file.writelines(filtered_lines)
+                
+    def file_indexing(self, domainFile):
+        
+        # Private function
+        # Dependancy for web_fetcher
+        
+        webFiles = []
+        
+        '''
+        Look for each file in the directory and record it
+        '''
+        
+        dir_entries = os.scandir(domainFile)
+        for entry in dir_entries:
+            if entry.is_file():
+                webFiles.append(entry)
+        
+        return webFiles
     
     def comparison(self):
+        
+        # Private function
+        
         '''
         Compares the known good code to the publicly running
         one

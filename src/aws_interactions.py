@@ -27,7 +27,6 @@ class s3_interactions():
         self.s3Client = boto3.client('s3')
         self.s3Resource = boto3.resource('s3')
         
-        
     def data_download(self):
         # WORKING
         
@@ -43,18 +42,23 @@ class s3_interactions():
         
         downloadLocation.download_to(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}/Data/Production_Data/")
         
-    def data_upload(self):
+    def data_upload(self, filename):
         '''
         Used to upload log files and JSON data
         
         - Only log files should be used when an error occurs in the program
           and JSON files should be uploaded when differences are found
         '''
-        with open('filename', 'rb') as data:
-            self.s3.upload_fileobj(data, 'mybucket', 'mykey')
-        pass
+        with open(filename, 'rb') as data:
+            if filename.startswith("LOG"):
+                self.s3.upload_fileobj(data, BUCKET_NAME, 'mykey')
+            else:
+                self.s3.upload_fileobj(data, BUCKET_NAME, 'mykey')
     
     def domain_list_creation(self):
+        
+        # Move out of aws_interactions and into detection.py
+        
         # Working
         
         '''
@@ -78,12 +82,14 @@ class s3_interactions():
     
 class sns_interactions():
     def __init__(self):
-        pass
+        self.sesClient = boto3.client('ses')
     
     def notifications(self):
         '''
         Send a notification through SNS from when errors occur
         or when issues arise
+        
+        Publishes to an existing AWS topic that needs to be configured prior to deployment
         
         - The notification should include the the S3 object address of the JSON file
         - If a log file is created, then the address of the log file should be included
