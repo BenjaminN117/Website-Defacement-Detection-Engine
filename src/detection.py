@@ -35,11 +35,13 @@ class website_detection():
         '''
         
         builtURL = ""
-        domainList = self.domain_list_creation()
+        #domainList = self.domain_list_creation(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION)
         
         os.makedirs("Data/Live_Data", exist_ok=True)
         
         # Fetch the website data for HTTPS to start with and then HTTP if not exists
+        
+        print(domainList)
         
         for domain in domainList["domains"]:
             key = list(domain.keys())[0]
@@ -48,7 +50,7 @@ class website_detection():
             download_folder = f'Data/Live_Data/{key}'   
             kwargs = {'bypass_robots': True}
             
-            webFiles = self.file_indexing(f"Data/Production_Data/{key}")
+            #webFiles = self.file_indexing(f"Data/Production_Data/{key}")
             
             self.data_cleaning(webFiles=webFiles)
             
@@ -93,55 +95,17 @@ class website_detection():
                 with open(x, "r") as file:
                     lines = file.readlines()
 
-                # Filter out the lines to be removed
-                lines_to_remove = [2, 3, 4, 5, 6]  # Example: remove lines 2, 4, and 7
+                lines_to_remove = [2, 3, 4, 5, 6]
                 filtered_lines = [line for i, line in enumerate(lines) if i+1 not in lines_to_remove]
+                
+                for i, line in enumerate(filtered_lines):
+                    if line.startswith('-->'):
+                        newline = line.replace("-->", '')
+                        filtered_lines[i] = newline
 
                 # Open the output file in write mode
                 with open(x, "w") as file:
                     file.writelines(filtered_lines)
-                
-    def file_indexing(self, domainFile):
-        
-        # Private function
-        # Dependancy for web_fetcher
-        
-        webFiles = []
-        
-        '''
-        Look for each file in the directory and record it
-        '''
-        
-        dir_entries = os.scandir(domainFile)
-        for entry in dir_entries:
-            if entry.is_file():
-                webFiles.append(entry)
-        
-        return webFiles
-    
-    def domain_list_creation(self):
-        
-        # Working
-        
-        '''
-        Compile a list of all websites that need to be fetched
-        
-        - The domain names should be the name of the prefix e.g. google.com
-        - Collect the domain names and add them to a list along with the https:// formatting. This
-        makes the assumption that all websites being tested are HTTPS (Should be an ok assumption to make
-        in 2023)
-        - List should be fetched from the Container file system, not S3, to prevent unneccessary requests to S3
-        '''
-        domainJSON = {"domains":[]}
-        
-        for domainName in os.listdir(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}Data/Production_Data"):
-            temp = {domainName:[]}
-            for fileName in os.listdir(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}Data/Production_Data/{domainName}"):
-                temp[domainName].append(fileName)
-            domainJSON["domains"].append(temp)
-        
-        return domainJSON
-    
     
     def comparison(self):
         
@@ -152,11 +116,53 @@ class website_detection():
         one
         
         - All data should be exported to a JSON file, if differences are found. If not then it shouldn't be logged.
+        
+        - if it is a text file like HTML or CSS, then do a line by line comparison. If it is a non
+          text file like an image, then do a hash function comparison
+        - if the file does not exist in production then add it into the report or filenames that aren't there
+        
         '''
+
         pass
     
+    
+    def dir_walker(self, targetFilePath):
+
+        domainWalk = {"domains":[]}
+        
+        # Nested due to no other func needing this.
+        def list_search(domainWalk, domainName):
+            for item in domainWalk["domains"]:
+                if domainName in item.keys():
+                    return True
+            return False
+        
+        for path,subdir,files in os.walk(targetFilePath):
+            for name in files:    
+                
+                strippedName = os.path.join(path,name).replace(targetFilePath, '')[1:]
+                
+                strippedPath = strippedName.split('/')
+                
+                domainName = strippedPath[0]
+                fileName = strippedPath[-1]
+    
+                result = list_search(domainWalk, domainName)
+                
+                if result == True:
+                    for item in domainWalk["domains"]:
+                        for key, value in item.items():
+                            if key == domainName:
+                                value.append({fileName:strippedName})
+                elif result == False:
+                    domainWalk["domains"].append({domainName:[{fileName:strippedName}]})
+                    
+        return domainWalk
+                
+
     
 if __name__ == "__main__":
     inst = website_detection()
     
-    inst.web_fetcher()
+    #inst.web_fetcher()
+    #inst.dir_walker()
