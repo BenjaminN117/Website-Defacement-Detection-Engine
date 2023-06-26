@@ -21,7 +21,7 @@ class website_detection():
         self.S3Interactions = s3_interactions()
         self.SNSInteractions = sns_interactions()
 
-    def web_fetcher(self):
+    def web_fetcher(self, productionDirectoryWalk):
         '''
         - While doing the web fetching, also do a DNS lookup to ensure the IP address of the website is
           stored, just in case it is part of a cluster
@@ -35,49 +35,39 @@ class website_detection():
         '''
         
         builtURL = ""
-        #domainList = self.domain_list_creation(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION)
         
         os.makedirs("Data/Live_Data", exist_ok=True)
         
         # Fetch the website data for HTTPS to start with and then HTTP if not exists
         
-        print(domainList)
-        
-        for domain in domainList["domains"]:
-            key = list(domain.keys())[0]
-            print(key)
-            os.makedirs(f"Data/Live_Data/{key}", exist_ok=True)
-            download_folder = f'Data/Live_Data/{key}'   
-            kwargs = {'bypass_robots': True}
-            
-            #webFiles = self.file_indexing(f"Data/Production_Data/{key}")
-            
-            self.data_cleaning(webFiles=webFiles)
-            
-            print(webFiles)
-            
-            # for subdomain in webFiles:
+        for item in productionDirectoryWalk["domains"]:
+            for domain, value in item.items():
+                os.makedirs(f"Data/Live_Data/{domain}", exist_ok=True)
+                download_folder = f'Data/Live_Data/{domain}'   
+                kwargs = {'bypass_robots': True}
                 
-            #     try:
-            #         try:
-            #             builtURL = f"https://{key}/{subdomain}"
-            #             print(builtURL)
-            #             #save_web_page(builtURL, download_folder, **kwargs)
-            #         except requests.exceptions.SSLError:
-            #             builtURL = f"http://{key}/{subdomain}"
-            #             print(builtURL)
-            #             #save_web_page(builtURL, download_folder, **kwargs)
-            #             os.removedirs(f"Data/Live_Data/{key}/https_{key}")
-            #     except Exception as err:
-            #         print(f"URL NOT FOUND {err}")
-            #         shutil.rmtree(f"Data/Live_Data/{key}", ignore_errors=True)
-                
-            #     # for subdomain in domain[key]:
-            #     #     builtURL = f"https://{key}/{subdomain}"
-                
-            # print(builtURL)
+                try:
+                    try:
+                        builtURL = f"https://{domain}"
+                        print(builtURL)
+                        save_web_page(builtURL, download_folder, **kwargs)
+                        if len(os.listdir(f"Data/Live_Data/{domain}/https_{domain}")) == 0:
+                            # Log to the log file
+                            os.removedirs(f"Data/Live_Data/{domain}")
+                            
+                    except requests.exceptions.SSLError:
+                        builtURL = f"http://{domain}"
+                        print(builtURL)
+                        save_web_page(builtURL, download_folder, **kwargs)
+                        os.removedirs(f"Data/Live_Data/{domain}/https_{domain}")
+                        if len(os.listdir(f"Data/Live_Data/{domain}/http_{domain}")) == 0:
+                            os.removedirs(f"Data/Live_Data/{domain}")
+                            
+                except Exception as err:
+                    print(f"URL NOT FOUND {err}")
+                    shutil.rmtree(f"Data/Live_Data/{domain}", ignore_errors=True)
     
-    def data_cleaning(self, webFiles):
+    def data_cleaning(self, fileName):
         
         # Private function
         
@@ -90,7 +80,7 @@ class website_detection():
         Needs to be run on every .html file as this is what it effects
         
         '''
-        for x in webFiles:
+        for x in fileName:
             if x.endswith(".html"):
                 with open(x, "r") as file:
                     lines = file.readlines()
@@ -107,7 +97,7 @@ class website_detection():
                 with open(x, "w") as file:
                     file.writelines(filtered_lines)
     
-    def comparison(self):
+    def comparison(self, productionDirectoryWalk, liveDirectoryWalk):
         
         # Private function
         
@@ -164,5 +154,8 @@ class website_detection():
 if __name__ == "__main__":
     inst = website_detection()
     
-    #inst.web_fetcher()
-    #inst.dir_walker()
+    productionDirectoryWalk = inst.dir_walker(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION)
+    print(productionDirectoryWalk)
+    inst.web_fetcher(productionDirectoryWalk)
+    liveDirectoryWalk = inst.dir_walker(LIVE_WEBSITES_DOWNLOAD_LOCATION)
+    print(liveDirectoryWalk)
