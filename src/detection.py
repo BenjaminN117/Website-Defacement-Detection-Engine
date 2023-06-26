@@ -42,8 +42,8 @@ class website_detection():
         
         for item in productionDirectoryWalk["domains"]:
             for domain, value in item.items():
-                os.makedirs(f"Data/Live_Data/{domain}", exist_ok=True)
-                download_folder = f'Data/Live_Data/{domain}'   
+                os.makedirs(f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{domain}", exist_ok=True)
+                download_folder = f'{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{domain}'   
                 kwargs = {'bypass_robots': True}
                 
                 try:
@@ -51,21 +51,21 @@ class website_detection():
                         builtURL = f"https://{domain}"
                         print(builtURL)
                         save_web_page(builtURL, download_folder, **kwargs)
-                        if len(os.listdir(f"Data/Live_Data/{domain}/https_{domain}")) == 0:
+                        if len(os.listdir(f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{domain}/https_{domain}")) == 0:
                             # Log to the log file
-                            os.removedirs(f"Data/Live_Data/{domain}")
+                            os.removedirs(f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{domain}")
                             
                     except requests.exceptions.SSLError:
                         builtURL = f"http://{domain}"
                         print(builtURL)
                         save_web_page(builtURL, download_folder, **kwargs)
-                        os.removedirs(f"Data/Live_Data/{domain}/https_{domain}")
-                        if len(os.listdir(f"Data/Live_Data/{domain}/http_{domain}")) == 0:
-                            os.removedirs(f"Data/Live_Data/{domain}")
+                        os.removedirs(f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{domain}/https_{domain}")
+                        if len(os.listdir(f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{domain}/http_{domain}")) == 0:
+                            os.removedirs(f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{domain}")
                             
                 except Exception as err:
                     print(f"URL NOT FOUND {err}")
-                    shutil.rmtree(f"Data/Live_Data/{domain}", ignore_errors=True)
+                    shutil.rmtree(f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{domain}", ignore_errors=True)
     
     def data_cleaning(self, fileName):
         
@@ -77,25 +77,24 @@ class website_detection():
         Removes the comments added by the pywebcopy module that could interfere
         with the detection process.
         
-        Needs to be run on every .html file as this is what it effects
+        Needs to be runon every .html file as this  is what it effects
         
         '''
-        for x in fileName:
-            if x.endswith(".html"):
-                with open(x, "r") as file:
-                    lines = file.readlines()
+        if fileName.endswith(".html"):
+            with open(fileName, "r") as file:
+                lines = file.readlines()
 
-                lines_to_remove = [2, 3, 4, 5, 6]
-                filtered_lines = [line for i, line in enumerate(lines) if i+1 not in lines_to_remove]
-                
-                for i, line in enumerate(filtered_lines):
-                    if line.startswith('-->'):
-                        newline = line.replace("-->", '')
-                        filtered_lines[i] = newline
+            lines_to_remove = [2, 3, 4, 5, 6]
+            filtered_lines = [line for i, line in enumerate(lines) if i+1 not in lines_to_remove]
+            
+            for i, line in enumerate(filtered_lines):
+                if line.startswith('-->'):
+                    newline = line.replace("-->", '')
+                    filtered_lines[i] = newline
 
-                # Open the output file in write mode
-                with open(x, "w") as file:
-                    file.writelines(filtered_lines)
+            # Open the output file in write mode
+            with open(fileName, "w") as file:
+                file.writelines(filtered_lines)
     
     def comparison(self, productionDirectoryWalk, liveDirectoryWalk):
         
@@ -155,7 +154,18 @@ if __name__ == "__main__":
     inst = website_detection()
     
     productionDirectoryWalk = inst.dir_walker(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION)
-    print(productionDirectoryWalk)
-    inst.web_fetcher(productionDirectoryWalk)
+    # print(productionDirectoryWalk)
+    # inst.web_fetcher(productionDirectoryWalk)
     liveDirectoryWalk = inst.dir_walker(LIVE_WEBSITES_DOWNLOAD_LOCATION)
-    print(liveDirectoryWalk)
+    #print(liveDirectoryWalk)
+    
+    
+    ### Data cleaning ###
+    for item in liveDirectoryWalk["domains"]:
+        for key, value in item.items():
+            for x in value:
+                for nkey, nvalue in x.items():
+                    inst.data_cleaning(fileName=f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{nvalue}")
+    
+    ### Comparison ###
+    

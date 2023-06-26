@@ -35,12 +35,12 @@ class s3_interactions():
         - Search for all of the prefixes in the location
         - Download all of the files into a predefined location
         '''
-
+        
         downloadLocation = CloudPath(WEBSITES_LOCATION)
         
-        os.makedirs(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}Data/Production_Data", exist_ok=True)
+        os.makedirs(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION, exist_ok=True)
         
-        downloadLocation.download_to(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}/Data/Production_Data/")
+        downloadLocation.download_to(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION)
         
     def data_upload(self, filename):
         '''
@@ -77,4 +77,3 @@ class sns_interactions():
 if __name__ == "__main__":
     inst = s3_interactions()
     inst.data_download()
-    print(inst.domain_list_creation())
