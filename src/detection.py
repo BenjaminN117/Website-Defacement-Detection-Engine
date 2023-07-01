@@ -6,6 +6,7 @@ Author: Benjamin Norman 2023
 
 import logging
 import os
+import re
 import requests
 import json
 import shutil
@@ -44,7 +45,7 @@ class website_detection():
         for item in productionDirectoryWalk["domains"]:
             for domain, value in item.items():
                 # removes one of the problems, or not.....
-                os.makedirs(f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{domain}", exist_ok=True)
+                #os.makedirs(f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{domain}", exist_ok=True)
                 download_folder = f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{domain}"
                 kwargs = {'bypass_robots': True}
                 
@@ -88,34 +89,63 @@ class website_detection():
         
     def data_cleaning(self, fileName):
         
-        # Private function
-        
         '''
         Removes the comments added by the pywebcopy module that could interfere
         with the detection process.
         
-        Needs to be runon every .html file as this  is what it effects
+        Needs to be run on every .html file as this  is what it effects
         
-        Need to rethink this a bit, maybe use regex to search between a set number of lines then apply a removal rule
+        Yes this needs refactoring
         
         '''
-        if fileName.endswith(".html"):
-
-            with open(fileName, "r") as file:
-                lines = file.readlines()
-                
-            lines_to_remove = [2, 3, 4, 5, 6]
-            filtered_lines = [line for i, line in enumerate(lines) if i+1 not in lines_to_remove]
+        with open(fileName, "r") as file:
+            lines = file.readlines()
             
-            for i, line in enumerate(filtered_lines):
-                if line.startswith('-->'):
-                    newline = line.replace("-->", '')
-                    filtered_lines[i] = newline
+        # Searches for the lines containing the pattern
+        for index, line in enumerate(lines):
+            if (line.lstrip().startswith("<!--") or line.lstrip().rstrip().endswith("<!--")) and lines[index+1].lstrip().startswith("* PyWebCopy"):
+                print("made it")
+                if (re.sub(r"\s+", "", lines[index+4]).lstrip().startswith("*At") or re.sub(r"\s+", "", lines[index+3]).lstrip().startswith("*At")) and (lines[index+5].lstrip().startswith("-->") or lines[index+4].lstrip().startswith("-->")):
+                    print(f"Is between lines {index} and {index+6}")
+                    if index == 0:
+                        print("here")
+                        startingNumber = 1
+                        headerNumber = 0
+                        lineDifference = 5
+                    else:
+                        startingNumber = index
+                        headerNumber = index
+                        lineDifference = 6
+                    endingNumber = index+6
+        
+        '''
+        Removes the 
 
-            # Open the output file in write mode
-            with open(fileName, "w") as file:
-                file.writelines(filtered_lines)
-    
+        * PyWebCopy Engine [version 7.0.2]
+        * Copyright 2020; Raja Tomar
+        * File mirrored from [https://angliancreative.com/]
+        *At UTC datetime: [2023-06-30 10:04:48.627810]
+        
+        bit but not the trailing comment
+        '''
+
+        lines_to_remove = list(range(startingNumber+1, endingNumber))
+        filtered_lines = [line for i, line in enumerate(lines) if i+1 not in lines_to_remove]
+        
+        for i, line in enumerate(filtered_lines):
+            if i == headerNumber:
+                newline = line.replace("<!--", '')
+                filtered_lines[i] = newline
+                
+        for i, line in enumerate(filtered_lines):
+            if i == endingNumber-lineDifference:
+                newline = line.replace("-->", '')
+                filtered_lines[i] = newline
+
+
+        with open(fileName, "w") as file:
+                        file.writelines(filtered_lines)
+
     def comparison(self, productionDirectoryWalk, liveDirectoryWalk):
         
         # Private function
@@ -166,8 +196,10 @@ class website_detection():
         for path,subdir,files in os.walk(targetFilePath):
             for name in files:    
                 
-                strippedName = os.path.join(path,name).replace(targetFilePath, '')[1:]
-                
+                if not name.startswith("."): # Ignores hidden files
+                    strippedName = os.path.join(path,name).replace(targetFilePath, '')[1:]
+                else:
+                    continue
                 strippedPath = strippedName.split('/')
                 
                 domainName = strippedPath[0]
@@ -194,15 +226,15 @@ if __name__ == "__main__":
     liveDirectoryWalk = inst.dir_walker(LIVE_WEBSITES_DOWNLOAD_LOCATION)
     
     
-    ### Data cleaning ###
-    for item in liveDirectoryWalk["domains"]:
-        for key, value in item.items():
-            for x in value:
-                for nkey, nvalue in x.items():
-                    try:
-                        inst.data_cleaning(fileName=f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{nvalue}")
-                    except UnicodeDecodeError as error:
-                        print(f"Unicode Error - {error}")
+    # ### Data cleaning ###
+    # for item in liveDirectoryWalk["domains"]:
+    #     for key, value in item.items():
+    #         for x in value:
+    #             for nkey, nvalue in x.items():
+    #                 try:
+    #                     inst.data_cleaning(fileName=f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{nvalue}")
+    #                 except UnicodeDecodeError as error:
+    #                     print(f"Unicode Error - {error}")
     ### Comparison ###
     
     inst.comparison(productionDirectoryWalk, liveDirectoryWalk)
