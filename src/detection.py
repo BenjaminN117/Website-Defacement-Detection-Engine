@@ -226,15 +226,15 @@ if __name__ == "__main__":
     liveDirectoryWalk = inst.dir_walker(LIVE_WEBSITES_DOWNLOAD_LOCATION)
     
     
-    # ### Data cleaning ###
-    # for item in liveDirectoryWalk["domains"]:
-    #     for key, value in item.items():
-    #         for x in value:
-    #             for nkey, nvalue in x.items():
-    #                 try:
-    #                     inst.data_cleaning(fileName=f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{nvalue}")
-    #                 except UnicodeDecodeError as error:
-    #                     print(f"Unicode Error - {error}")
+    ### Data cleaning ###
+    for item in liveDirectoryWalk["domains"]:
+        for key, value in item.items():
+            for x in value:
+                for nkey, nvalue in x.items():
+                    try:
+                        inst.data_cleaning(fileName=f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{nvalue}")
+                    except UnicodeDecodeError as error:
+                        print(f"Unicode Error - {error}")
     ### Comparison ###
     
     inst.comparison(productionDirectoryWalk, liveDirectoryWalk)
