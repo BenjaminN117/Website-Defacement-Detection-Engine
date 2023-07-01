@@ -129,7 +129,11 @@ class website_detection():
         bit but not the trailing comment
         '''
 
-        lines_to_remove = list(range(startingNumber+1, endingNumber))
+        try:
+            lines_to_remove = list(range(startingNumber+1, endingNumber))
+        except NameError as error:
+            print(f"No comments identified - {error}")
+            return False
         filtered_lines = [line for i, line in enumerate(lines) if i+1 not in lines_to_remove]
         
         for i, line in enumerate(filtered_lines):
