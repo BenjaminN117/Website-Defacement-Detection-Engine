@@ -16,9 +16,6 @@ class website_detection():
         pass
 
     def comparison(self, productionDirectoryWalk, liveDirectoryWalk):
-        
-        # Private function
-        
         '''
         Compares the known good code to the publicly running
         one
@@ -36,39 +33,37 @@ class website_detection():
         # import the dict of known text file extensions that need comparison and not hashing
         with open("file_extensions.json", "r") as data:
             fileExtensions = json.load(data)
-            
-        
+
         for liveItem, prodItem in zip(liveDirectoryWalk["domains"], productionDirectoryWalk["domains"]):
-            for liveKey, liveValue, prodKey, prodValue in zip(liveItem.items(), prodItem.items()):
-                print(liveKey)
-            
-        # for item in liveDirectoryWalk["domains"]:
-        #     for key, value in item.items():
-        #         for x in value:
-        #             for nkey, nvalue in x.items():
-        #                 print(nkey, nvalue)
+            for (liveKey, liveValue), (prodKey, prodValue) in zip(liveItem.items(), prodItem.items()):
+                for liveDict in liveValue:
+                    if liveDict in prodValue:
+                        print(f"found!! - {liveDict}")
+                        liveFileName, liveFilePath = list(liveDict.items())[0]
+                        productionFileName, productionFilePath = list(liveDict.items())[0]
+                        if f".{liveFileName.split('.')[-1]}" in fileExtensions:
+                            print("Sending off for text comparison")
+                            self.text_file_comparison(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}/{productionFilePath}", f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{liveFilePath}")
+                        else:
+                            print("false")
+                            if self.hashing(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}/{productionFilePath}") != self.hashing(f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{liveFilePath}"):
+                                print("Different Files")
+                            else:
+                                print("SameFiles")
+                    else:
+                        print(f"Not found!! - {liveDict}")                        
                         
-        # for item in productionDirectoryWalk["domains"]:
-        #     for key, value in item.items():
-        #         for x in value:
-        #             for nkey, nvalue in x.items():
-        #                 print(nkey, nvalue)
-                        
-                        
-        # if ".html" in fileExtensions:
-        #     print("true")
-        # else:
-        #     if hashing("prodFilename") != hashing("liveFileName"):
-        #         print("Different Files")
-        #     else:
-        #         print("SameFiles")
-            
     def hashing(self, filePath):
         with open(filePath, 'rb') as f:
             image_data = f.read()
+            f.close()
         sha256_hash = hashlib.sha256()
         sha256_hash.update(image_data)
         return sha256_hash.hexdigest()
+    
+    
+    def text_file_comparison(self, productionFilePath, liveFilePath):
+        pass
     
     
 if __name__ == "__main__":
