@@ -106,8 +106,8 @@ class website_fetcher():
 
         * PyWebCopy Engine [version 7.0.2]
         * Copyright 2020; Raja Tomar
-        * File mirrored from [https://angliancreative.com/]
-        *At UTC datetime: [2023-06-30 10:04:48.627810]
+        * File mirrored from [https://WEBSITE_NAME]
+        *At UTC datetime: [1999-01-01 00:00:00.000000]
         
         bit but not the trailing comment
         '''
