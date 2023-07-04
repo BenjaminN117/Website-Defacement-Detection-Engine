@@ -3,7 +3,6 @@ Product: Web Fetch
 Description: Fetches the live website data and stored it in the desired directory
 Author: Benjamin Norman 2023
 '''
-import logging
 import os
 import re
 import requests
@@ -15,8 +14,8 @@ from env import *
 
 class website_fetcher():
     # Import a logging object as well when that stage is next up
-    def __init__(self):
-        pass
+    def __init__(self, loggerObj):
+        self.logger = loggerObj
 
     def web_fetcher(self, productionDirectoryWalk):
         '''
@@ -167,21 +166,3 @@ class website_fetcher():
                     domainWalk["domains"].append({domainName:[{fileName:strippedName}]})
                     
         return domainWalk
-    
-if __name__ == "__main__":
-    inst = website_fetcher()
-    
-    productionDirectoryWalk = inst.dir_walker(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION)
-    inst.web_fetcher(productionDirectoryWalk)
-    liveDirectoryWalk = inst.dir_walker(LIVE_WEBSITES_DOWNLOAD_LOCATION)
-    
-    
-    # ### Data cleaning ###
-    # for item in liveDirectoryWalk["domains"]:
-    #     for key, value in item.items():
-    #         for x in value:
-    #             for nkey, nvalue in x.items():
-    #                 try:
-    #                     inst.data_cleaning(fileName=f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{nvalue}")
-    #                 except UnicodeDecodeError as error:
-    #                     print(f"Unicode Error - {error}")

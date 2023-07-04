@@ -12,8 +12,8 @@ from web_fetch import website_fetcher
 
 class website_detection():
     # Import a logging object as well when that stage is next up
-    def __init__(self):
-        pass
+    def __init__(self, loggingObj):
+        logger = loggingObj
 
     def comparison(self, productionDirectoryWalk, liveDirectoryWalk):
         '''
@@ -59,19 +59,18 @@ class website_detection():
             f.close()
         sha256_hash = hashlib.sha256()
         sha256_hash.update(image_data)
+        
         return sha256_hash.hexdigest()
-    
-    
+
     def text_file_comparison(self, productionFilePath, liveFilePath):
-        pass
-    
-    
-if __name__ == "__main__":
-    inst = website_detection()
-    web = website_fetcher()
-    
-    productionDirectoryWalk = web.dir_walker(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION)
-    liveDirectoryWalk = web.dir_walker(LIVE_WEBSITES_DOWNLOAD_LOCATION)
-    
-    inst.comparison(productionDirectoryWalk, liveDirectoryWalk)
-    
+        with open(liveFilePath, 'r') as a, open(productionFilePath, 'r') as b:
+            liveFileData = a.readlines()
+            productionFileData = b.readlines()
+            a.close()
+            b.close()
+            
+        lineCounter = 1
+        for line1, line2 in zip(liveFileData, productionFileData):
+            if line1.lstrip().rstrip() != line2.lstrip().rstrip():
+                print(f"({lineCounter}) - LIVE - {line1} --- PROD {line2}")
+            lineCounter +=1

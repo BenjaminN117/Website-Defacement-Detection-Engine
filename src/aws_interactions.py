@@ -23,10 +23,10 @@ class s3_interactions():
     s3Client: object
     s3Resource: object
     
-    def __init__(self):
+    def __init__(self, loggerObj):
         self.s3Client = boto3.client('s3')
         self.s3Resource = boto3.resource('s3')
-        
+        self.logger = loggerObj
     def data_download(self):
         # WORKING
         
@@ -49,18 +49,18 @@ class s3_interactions():
         - Only log files should be used when an error occurs in the program
           and JSON files should be uploaded when differences are found
         '''
-        with open(filename, 'rb') as data:
-            if filename.startswith("LOG"):
-                self.s3.upload_fileobj(data, BUCKET_NAME, 'mykey')
-            else:
-                self.s3.upload_fileobj(data, BUCKET_NAME, 'mykey')
-    
+        # with open(filename, 'rb') as data:
+        #     if filename.startswith("LOG"):
+        #         self.s3.upload_fileobj(data, BUCKET_NAME, 'mykey')
+        #     else:
+        #         self.s3.upload_fileobj(data, BUCKET_NAME, 'mykey')
+        pass
     
     
 class sns_interactions():
-    def __init__(self):
+    def __init__(self, loggerObj):
         self.sesClient = boto3.client('ses')
-    
+        self.logger = loggerObj
     def notifications(self):
         '''
         Send a notification through SNS from when errors occur
@@ -72,8 +72,3 @@ class sns_interactions():
         - If a log file is created, then the address of the log file should be included
         '''
         pass
-    
-# Testing only
-if __name__ == "__main__":
-    inst = s3_interactions()
-    inst.data_download()
