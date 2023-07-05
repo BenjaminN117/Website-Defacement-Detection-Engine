@@ -1,9 +1,8 @@
 '''
-Product:
-Description:
+Product: Main WDDE
+Description: Main script for running WDDE
 Author: Benjamin Norman 2023
 '''
-
 
 from aws_interactions import s3_interactions
 from aws_interactions import sns_interactions
@@ -18,6 +17,8 @@ import datetime
 class runner():
     def __init__(self) -> None:
         pass
+    
+        self.logger_name = ""
 
     def generate_logger_file(self, loggerLevel):
         '''
@@ -26,8 +27,8 @@ class runner():
         currentDateTime = datetime.datetime.now()
         date = datetime.date.today()
         
-        logger_name = f"WDDE_{date.year}-{date.month}-{date.day}_"+currentDateTime.strftime("%H:%M:%S_UTC")+".log"
-        logging.basicConfig(filename=logger_name,
+        self.logger_name = f"WDDE_{date.year}-{date.month}-{date.day}_"+currentDateTime.strftime("%H:%M:%S_UTC")+".log"
+        logging.basicConfig(filename=self.logger_name,
                     format='%(levelname)s - %(asctime)s: %(message)s',
                     filemode='w')
         logger = logging.getLogger()
@@ -99,3 +100,5 @@ if __name__ == "__main__":
                         print(f"Unicode Error - {error}")
     
     detect.comparison(productionDirectoryWalk, liveDirectoryWalk)
+    
+    s3.data_upload(run.logger_name)

@@ -1,5 +1,5 @@
 '''
-Product: Ineractions with AWS
+Product: Interactions with AWS
 Description: Provides the processes for interacting with S3 and SNS
 Author: Benjamin Norman 2023
 '''
@@ -7,16 +7,9 @@ Author: Benjamin Norman 2023
 from env import *
 
 import boto3
-import logging
+from botocore.exceptions import ClientError
 import os
 from cloudpathlib import CloudPath
-
-'''
-- Download any public facing web files in a single project.
-- Store them in a temp folder on the container
-- Return a list of websites that need to be fetched based on these files
-- When there are changes detected, send a notif through SNS
-'''
 
 class s3_interactions():
     
@@ -27,21 +20,21 @@ class s3_interactions():
         self.s3Client = boto3.client('s3')
         self.s3Resource = boto3.resource('s3')
         self.logger = loggerObj
-    def data_download(self):
-        # WORKING
         
+    def data_download(self):
         '''
         Download the production code from the S3 bucket
         - Search for all of the prefixes in the location
         - Download all of the files into a predefined location
         '''
+        try:
+            downloadLocation = CloudPath(WEBSITES_LOCATION)
         
-        downloadLocation = CloudPath(WEBSITES_LOCATION)
+            os.makedirs(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION, exist_ok=True)
         
-        os.makedirs(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION, exist_ok=True)
-        
-        downloadLocation.download_to(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION)
-        
+            downloadLocation.download_to(PRODUCTION_WEBSITES_DOWNLOAD_LOCATION)
+        except Exception as error:
+            self.logger.critical(f"Unable to download production data - {error}")
     def data_upload(self, filename):
         '''
         Used to upload log files and JSON data
@@ -49,13 +42,11 @@ class s3_interactions():
         - Only log files should be used when an error occurs in the program
           and JSON files should be uploaded when differences are found
         '''
-        # with open(filename, 'rb') as data:
-        #     if filename.startswith("LOG"):
-        #         self.s3.upload_fileobj(data, BUCKET_NAME, 'mykey')
-        #     else:
-        #         self.s3.upload_fileobj(data, BUCKET_NAME, 'mykey')
-        pass
-    
+        try:
+            response = self.s3Client.upload_file(filename, BUCKET_NAME, f"{LOG_FILE_LOCATION}{filename}")
+        except ClientError as e:
+            return e
+        return True
     
 class sns_interactions():
     def __init__(self, loggerObj):

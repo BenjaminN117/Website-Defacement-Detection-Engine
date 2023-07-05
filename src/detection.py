@@ -13,7 +13,7 @@ from web_fetch import website_fetcher
 class website_detection():
     # Import a logging object as well when that stage is next up
     def __init__(self, loggingObj):
-        logger = loggingObj
+        self.logger = loggingObj
 
     def comparison(self, productionDirectoryWalk, liveDirectoryWalk):
         '''
@@ -48,10 +48,12 @@ class website_detection():
                             print("false")
                             if self.hashing(f"{PRODUCTION_WEBSITES_DOWNLOAD_LOCATION}/{productionFilePath}") != self.hashing(f"{LIVE_WEBSITES_DOWNLOAD_LOCATION}/{liveFilePath}"):
                                 print("Different Files")
+                                self.logger.warning(f"File Difference - {productionFileName} - {liveFileName}")
                             else:
                                 print("SameFiles")
                     else:
-                        print(f"Not found!! - {liveDict}")                        
+                        print(f"Not found!! - {liveDict}")
+                        self.logger.info(f"Unknown File Discovered - {liveDict}")                        
                         
     def hashing(self, filePath):
         with open(filePath, 'rb') as f:
@@ -72,5 +74,5 @@ class website_detection():
         lineCounter = 1
         for line1, line2 in zip(liveFileData, productionFileData):
             if line1.lstrip().rstrip() != line2.lstrip().rstrip():
-                print(f"({lineCounter}) - LIVE - {line1} --- PROD {line2}")
+                self.logger.warning(f"({lineCounter}) - LIVE - {line1} --- PROD {line2}")
             lineCounter +=1
