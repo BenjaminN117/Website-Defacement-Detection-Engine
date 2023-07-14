@@ -1,14 +1,24 @@
-MAINTAINER "Benjamin Norman 2023"
+# Product: WDDE Docker
+# Description: Dockerfile for building WDDE image
+# Author: Benjamin Norman 2023
 
-FROM Ubuntu:20.04
+FROM ubuntu:20.04
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install boto3
+
+RUN useradd -ms /bin/bash  webDetector
 
 USER webDetector
 
 WORKDIR /home/webDetector
 
+COPY ../test/ /home/webDetector/
 
-
-
-RUN mkdir ./
-
-COPY ./src ./
+CMD [ "python3", "src/main.py" ]
