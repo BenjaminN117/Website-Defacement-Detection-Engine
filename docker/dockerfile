@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install boto3
+
 
 RUN useradd -ms /bin/bash  webDetector
 
@@ -19,6 +19,8 @@ USER webDetector
 
 WORKDIR /home/webDetector
 
-COPY ../test/ /home/webDetector/
+COPY ../ /home/webDetector/
+
+RUN python3 -m pip install -r requirements.txt
 
 CMD [ "python3", "src/main.py" ]
