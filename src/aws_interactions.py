@@ -48,13 +48,13 @@ class s3_interactions():
             return e
         return True
     
-class sns_interactions():
+class ses_interactions():
     def __init__(self, loggerObj):
         self.sesClient = boto3.client('ses')
         self.logger = loggerObj
-    def notifications(self):
+    def notifications(self, filename):
         '''
-        Send a notification through SNS from when errors occur
+        Send a notification through SES from when errors occur
         or when issues arise
         
         Publishes to an existing AWS topic that needs to be configured prior to deployment
@@ -62,4 +62,42 @@ class sns_interactions():
         - The notification should include the the S3 object address of the JSON file
         - If a log file is created, then the address of the log file should be included
         '''
-        pass
+        
+        response = self.sesClient.send_email(
+        Destination={
+            'BccAddresses': NOTIFICATION_LIST
+            ,
+            'CcAddresses': [
+                'recipient3@example.com',
+            ],
+            'ToAddresses': [
+                'recipient1@example.com',
+                'recipient2@example.com',
+            ],
+        },
+        Message={
+            'Body': {
+                'Html': {
+                    'Charset': 'UTF-8',
+                    'Data': 'This message body contains HTML formatting. It can, for example, contain links like this one: <a class="ulink" href="http://docs.aws.amazon.com/ses/latest/DeveloperGuide" target="_blank">Amazon SES Developer Guide</a>.',
+                },
+                'Text': {
+                    'Charset': 'UTF-8',
+                    'Data': 'This is the message body in text format.',
+                },
+            },
+            'Subject': {
+                'Charset': 'UTF-8',
+                'Data': 'URGENT - WDDE ALERT',
+            },
+        },
+        ReplyToAddresses=[
+        ],
+        ReturnPath='',
+        ReturnPathArn='',
+        Source=SEND_EMAIL_ID,
+        SourceArn='',
+        )
+
+        print(response)
+        

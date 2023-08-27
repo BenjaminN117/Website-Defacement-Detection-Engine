@@ -5,7 +5,7 @@ Author: Benjamin Norman 2023
 '''
 
 from aws_interactions import s3_interactions
-from aws_interactions import sns_interactions
+from aws_interactions import ses_interactions
 from detection import website_detection
 from web_fetch import website_fetcher
 from env import *
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     loggerObj = run.generate_logger_file(loggerLevel)
     
     s3 = s3_interactions(loggerObj)
-    sns = sns_interactions(loggerObj)
+    sns = ses_interactions(loggerObj)
     detect = website_detection(loggerObj)
     fetch = website_fetcher(loggerObj)
     
